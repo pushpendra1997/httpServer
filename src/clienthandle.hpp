@@ -16,12 +16,7 @@ public:
 
 	void makeRequest() {
 
-		bool IsClientError=false; //Client timeout flag
-		bool IsClientClose=false;
 		// Set timeout for reads
-		setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO,
-					(struct timeval *)&keepAliveTimeout,
-					sizeof(struct timeval));
 		
 		
 		char request[maxHttpLen];
@@ -53,7 +48,7 @@ public:
 	}
 
 	// Sends content for requested path
-	void __sendResponse(std::string &path) {
+	inline void __sendResponse(std::string &path) {
 
 		char responseStr[maxHttpLen];
 
@@ -68,7 +63,7 @@ public:
 
 	}
 
-	void addHttpHeader(char *responseStr, httpResponse &response){
+	inline void addHttpHeader(char *responseStr, httpResponse &response){
 
 		sprintf(responseStr, "HTTP/1.1 %s\r\n"
 							"Connection: Keep-Alive\r\n"
@@ -82,16 +77,17 @@ public:
 
 	}
 
-	string build_400_badreq_headers(){
-		string response;
+	std::string build_400_badreq_headers(){
+		std::string response;
 		response +="HTTP/1.1 400 Client Error\r\n";
 		response +="Server: Myserver 1.0\r\n";
 		response +="\r\n";
 
 		return response;
 	}
-	string build_404_notfound_headers(){
-		string response;
+
+	std::string build_404_notfound_headers(){
+		std::string response;
 		response +="HTTP/1.1 404 Not Found\r\n";
 		response +="Server: Myserver 1.0\r\n";
 		response +="\r\n";

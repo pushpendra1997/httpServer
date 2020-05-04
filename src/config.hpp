@@ -4,7 +4,7 @@
 #include <string>
 
 int maxHttpLen = 600;
-int maxFileSize = 1000;
+int maxFileSize = 600;
 int maxCacheEntry = 5;
 struct timeval keepAliveTimeout({5, 0});
 std::string PAGE404 = "404.html";

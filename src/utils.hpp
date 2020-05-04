@@ -5,18 +5,9 @@
 #include <string.h>
 #include "config.hpp"
 
-struct httpResponse {
-	char* content;
-	char* status;
-};
 
-struct httpHeader {
-	std::string path;
-	bool keepAlive;
-};
-
-inline void parseHeader(char *request, httpHeader &header) {
-	header.path = "";
+inline void getPath(char *request, std::string &path,bool &keepAlive) {
+	path = "";
 	int len = strlen(request);
 	bool check=false;
 	for(int i=0;i<len;i++) {
@@ -29,12 +20,12 @@ inline void parseHeader(char *request, httpHeader &header) {
 				break;
 			}
 			else {
-				header.path+=request[i];
+				path+=request[i];
 			}
 		}
 	}
 
-	header.keepAlive = (strstr(request, "keep-alive") != NULL) ||
+	keepAlive = (strstr(request, "keep-alive") != NULL) ||
 						(strstr(request, "HTTP/1.1") != NULL);
 }
 
