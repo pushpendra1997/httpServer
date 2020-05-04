@@ -4,35 +4,38 @@
 #include <mutex>
 #include <sys/stat.h>
 #include <shared_mutex>
-#include <map>
+#include <unordered_map>
 
 #include <fstream>
-#include "config.hpp"
 #include "utils.hpp"
 
+int maxCacheEntry = 5;
+std::string PAGE404 = "404.html";
+
+char STATUS404[] = "404 Not Found";
+char STATUS500[] = "500 Internal Server Error";
+char STATUS200[] = "200 OK";
 
 class datastorage {
 
 private:
 	// Maps path to file name
-	std::map<std::string, std::string> pathFile;
+	std::unordered_map<std::string, std::string> pathFile;
 
 	// Mutex to prevent simultaneous cache update
  	std::shared_mutex mutex_;
+
 	// LRU Cache to reduce File I/O
 	int time = 0;
-	std::map<std::string, char*> cache;
+	std::unordered_map<std::string, char*> cache;
 
-	std::map<int, std::string> timeCache;
+	std::unordered_map<int, std::string> timeCache;
 
 public:
 	datastorage(){};
-	~datastorage() {
-		// Clear the cache
-		for(auto x: cache) {
-			delete[] x.second;
-		}
-	};
+	
+
+	// cheking file exist or not by unix system call
 
 	inline bool fileExist (const std::string& name) {
 	  struct stat buffer;   
@@ -40,11 +43,10 @@ public:
 	}
 
 	// Map path to fileName
-
 	void addPage(std::string path, std::string fileName) {
 		std::unique_lock<std::shared_mutex> lock(mutex_);
 
-		// If file exists add mapping using Linux syscall
+		// If file exists add unordered_mapping using Linux syscall
 		if(fileExist("htmlpage/" + fileName)) {
 			pathFile[path] = fileName;
 		}
@@ -54,6 +56,7 @@ public:
 
 	// Return pair - Content, Status Code
 
+	// using shared_lock so multiple thread can read when noone is writing
 
 	inline bool getFromCache(std::string &fileName, char* &content) {
 		std::shared_lock<std::shared_mutex> lock(mutex_);
@@ -69,6 +72,7 @@ public:
 	}
 
 	
+    // using unique_lock so only one can write when No one is reading
 
 	void setInCacheAndGet(std::string &fileName, char* &content, char* &status) {
 
@@ -106,6 +110,7 @@ public:
 	}
 
 
+	// getting content and status for response
 	void getWebPage(std::string &path, char* &content, char* &status) {
 
 		std::string fileName = (pathFile.count(path)) ? pathFile[path] : PAGE404;
@@ -122,4 +127,11 @@ public:
 		}
 
 	}
+
+	~datastorage() {
+		// Clear the cache
+		for(auto x: cache) {
+			delete[] x.second;
+		}
+	};
 };

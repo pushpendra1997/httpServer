@@ -27,6 +27,8 @@ pthread_mutex_t QueueLock;
 
 std::queue <int> event_queue;
 
+
+
 class server {
 
 private:
@@ -41,8 +43,11 @@ private:
 	int totalThread;
 
 public:
-	///server starting  
-	void start(int port = 8080,int NumberofThread = 20) {
+	
+	//server starting 
+	//  port_number: port number, Default:8080
+
+	void start(int port = 8080,int NumberofThread = 10) {
 
 		totalThread = NumberofThread;
 
@@ -111,10 +116,11 @@ public:
 
 	}
 
-	
+	// Accepting client request using thread pool using limited amount of thread
 	void acceptConnections() {
 
 		pthread_t ptid[totalThread];
+		std::cout<<"server started\n";
         for (int i = 0; i < totalThread; i++)
         {
             int return_value=pthread_create(&ptid[i], NULL, connection_thread, (void*) NULL); 
@@ -124,7 +130,9 @@ public:
                 exit(1);
             }
         }
+
         while(1) {
+
             int socket_num=accept(serverSocket, (struct sockaddr *)&address, (socklen_t*)&sizeof_address);
             pthread_mutex_lock(&QueueLock);
             event_queue.push(socket_num);
@@ -134,7 +142,7 @@ public:
 	}
 
 	// Waits for msg from the client
-	
+	//getting client id by thread pool
 	static void* connection_thread(void *argv) {
 
         while(true){
@@ -159,8 +167,7 @@ public:
     static void makeRequest(int client) {
 
 		// Set timeout for reads
-		
-		
+		int maxHttpLen = 600;
 		char request[maxHttpLen];
 
 	
@@ -171,6 +178,7 @@ public:
 			//Keep recving reqs until: client close the connection(read()==0) or read error occours(read()==-1) or client timeout(read()==-1) 
 
 			request[sz] = '\0';
+			
 			// Timeout or Connection Closed
 			if(sz<=0) {
 				
@@ -186,8 +194,12 @@ public:
 
 		
 			char* content;
+
 			char* status;
+
 			fileMemory.getWebPage(path, content, status);
+			
+			struct timeval keepAliveTimeout({5, 0});
 
 			sprintf(responseStr, "HTTP/1.1 %s\r\n Connection: Keep-Alive\r\n Content-Type: text/html\r\nKeep-Alive: timeout=%d\r\nContent-Length: %d\r\n\r\n%s",
 							status,(int)keepAliveTimeout .tv_sec, ((content==NULL)? 0 : (int)strlen(content)), ((content==NULL)? "" : content));
@@ -210,11 +222,12 @@ int main(int argc, char const *argv[]) {
 
 	server server;
 
-	server.start(8080, 20);
+	server.start(8080, 10); //port 8080 thread 10
 
 	server.addPage("test", "test.html");
 
 	server.addPage("", "test.html");
+
 
 	server.acceptConnections();
 

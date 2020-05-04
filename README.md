@@ -1,7 +1,8 @@
 # Run Instructions
-Complie the server using the following command:
+
+Open src folder Complie the server using the following command:
 ```
- g++ src/server.cpp --std=c++17 -o server -lpthread
+ g++ server.cpp --std=c++17 -o server -lpthread
 ```
 Boot up the server using
 
