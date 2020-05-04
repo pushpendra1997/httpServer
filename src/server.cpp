@@ -19,10 +19,12 @@ datastorage fileMemory;
 
 pthread_mutex_t QueueLock;
 
+
+// queue for thread pooling
 std::queue <int> event_queue;
 
 
-
+// server for connection
 class server {
 
 private:
@@ -158,6 +160,7 @@ public:
         }
     }
 
+    //Client request response
     static void makeRequest(int client) {
 
 		// Set timeout for reads
@@ -167,44 +170,39 @@ public:
 	
 		int sz;
 
-		while(sz = read(client, request , maxHttpLen)>0) {
+		sz = read(client, request , maxHttpLen);
 
-			//Keep recving reqs until: client close the connection(read()==0) or read error occours(read()==-1) or client timeout(read()==-1) 
+		if(sz<=0) {	
+			return ;
+		}
 
-			request[sz] = '\0';
-			
-			// Timeout or Connection Closed
-			if(sz<=0) {
-				
-				return ;
-			}
-			bool keepAlive;
 
-			std::string path;
+		//Keep recving reqs until: client close the connection(read()==0) or read error occours(read()==-1) or client timeout(read()==-1) 
 
-			getPath(request, path, keepAlive);
+		request[sz] = '\0';
+		
+		// Timeout or Connection Closed
 
-			char responseStr[maxHttpLen];
+		std::string path;
+
+		getPath(request, path);
+
+		char responseStr[maxHttpLen];
+
+	
+		char* content;
+
+		char* status;
+
+		fileMemory.getWebPage(path, content, status);
+
+		sprintf(responseStr, "HTTP/1.1 %s\r\n charset=ISO-8859-4\r\n Content-Type: text/html\r\nContent-Length: %d\r\n\r\n%s",
+						status, ((content==NULL)? 0 : (int)strlen(content)), ((content==NULL)? "" : content));
+
+		write(client, responseStr, strlen(responseStr));
 
 		
-			char* content;
-
-			char* status;
-
-			fileMemory.getWebPage(path, content, status);
-
-			struct timeval keepAliveTimeout({5, 0});
-
-			sprintf(responseStr, "HTTP/1.1 %s\r\n Connection: Keep-Alive\r\n Content-Type: text/html\r\nKeep-Alive: timeout=%d\r\nContent-Length: %d\r\n\r\n%s",
-							status,(int)keepAliveTimeout .tv_sec, ((content==NULL)? 0 : (int)strlen(content)), ((content==NULL)? "" : content));
-
-			write(client, responseStr, strlen(responseStr));
-
-			// No Keep Alive Header
-			if(!keepAlive) {
-				return ;
-			}
-		}
+		
 	}
 
 

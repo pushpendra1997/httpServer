@@ -18,3 +18,6 @@ HTTP server implemented in C++ without any third party library.
 * Handle GET requests
 * Asynchronous request handling
 * Multithreaded/Thread Pooling
+* Serving More than 50k request 
+
+```

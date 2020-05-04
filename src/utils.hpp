@@ -5,7 +5,7 @@
 #include <string.h>
 
 
-inline void getPath(char *request, std::string &path,bool &keepAlive) {
+inline void getPath(char *request, std::string &path) {
 	path = "";
 	int len = strlen(request);
 	bool check=false;
@@ -24,8 +24,6 @@ inline void getPath(char *request, std::string &path,bool &keepAlive) {
 		}
 	}
 
-	keepAlive = (strstr(request, "keep-alive") != NULL) ||
-						(strstr(request, "HTTP/1.1") != NULL);
 }
 
 #endif
