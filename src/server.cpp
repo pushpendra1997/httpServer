@@ -10,14 +10,8 @@
 
 #include <unistd.h>
 
-
-#include "config.hpp"
-
-
-
 #include "datastorage.hpp"
 #include "utils.hpp"
-#include "config.hpp"
 
 datastorage fileMemory;
 
@@ -198,7 +192,7 @@ public:
 			char* status;
 
 			fileMemory.getWebPage(path, content, status);
-			
+
 			struct timeval keepAliveTimeout({5, 0});
 
 			sprintf(responseStr, "HTTP/1.1 %s\r\n Connection: Keep-Alive\r\n Content-Type: text/html\r\nKeep-Alive: timeout=%d\r\nContent-Length: %d\r\n\r\n%s",

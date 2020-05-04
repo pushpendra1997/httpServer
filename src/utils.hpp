@@ -3,7 +3,6 @@
 
 #include <string>
 #include <string.h>
-#include "config.hpp"
 
 
 inline void getPath(char *request, std::string &path,bool &keepAlive) {
